@@ -20,35 +20,56 @@ class HelloController extends AbstractController
 {
 
     /**
-     * セッションの使用方法
+     * Twigの使用方法
      *
      * @Route("/hello", name="hello")
      */
-    public function index(Request $request, SessionInterface $session): Response
+    public function index(Request $request): Response
     {
-        $person = new MyData();
-
-        $form = $this->createFormBuilder($person)
-            ->add('data',  TextType::class)
-            ->add('save', SubmitType::class, ['label' => 'Click'])
-            ->getForm();
-
-        if ($request->getMethod() == 'POST') {
-            $form->handleRequest($request);
-            $data = $form->getData();
-            if ($data->getData() == '!') {
-                $session->remove('data');
-            } else {
-                $session->set('data', $data->getData());
-            }
-        }
+        $data = [
+            ['name' => 'Taro', 'age' => 37, 'mail' => 'taro@yamada'],
+            ['name' => 'Hanako', 'age' => 29, 'mail' => 'hanako@yamada'],
+            ['name' => 'Sashiko', 'age' => 43, 'mail' => 'sashiko@yamada'],
+            ['name' => 'Jiro', 'age' => 18, 'mail' => 'jiro@yamada'],
+        ];
 
         return $this->render('hello/index.html.twig', [
             'title' => 'Hello',
-            'data' => $session->get('data'),
-            'form' => $form->createView()
+            'data' => $data
+            // 'message' => 'これはサンプルテンプレート画面です。'
         ]);
     }
+
+    // /**
+    //  * セッションの使用方法
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request, SessionInterface $session): Response
+    // {
+    //     $person = new MyData();
+
+    //     $form = $this->createFormBuilder($person)
+    //         ->add('data',  TextType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $data = $form->getData();
+    //         if ($data->getData() == '!') {
+    //             $session->remove('data');
+    //         } else {
+    //             $session->set('data', $data->getData());
+    //         }
+    //     }
+
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'data' => $session->get('data'),
+    //         'form' => $form->createView()
+    //     ]);
+    // }
 
     // /**
     //  * Symfony Fomの使用方法2

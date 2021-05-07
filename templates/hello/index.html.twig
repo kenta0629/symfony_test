@@ -4,9 +4,8 @@
 
 {% block body %}
 <h1>{{title}}</h1>
-<p>{{message}}</p>
-<form action="/hello" method="post">
-<input type="text" name="input">
-<input type="submit" value="click">
-</form>
+<p>data: {{data}}</p>
+{{form_start(form)}}
+{{form_widget(form)}}
+{{form_end(form)}}
 {% endblock %}

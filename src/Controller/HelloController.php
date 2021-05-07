@@ -10,27 +10,127 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 // use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+
 class HelloController extends AbstractController
 {
+
     /**
-     * リクエスト取得方法3
+     * セッションの使用方法
      *
      * @Route("/hello", name="hello")
      */
-    public function index(Request $request): Response
+    public function index(Request $request, SessionInterface $session): Response
     {
+        $person = new MyData();
+
+        $form = $this->createFormBuilder($person)
+            ->add('data',  TextType::class)
+            ->add('save', SubmitType::class, ['label' => 'Click'])
+            ->getForm();
+
         if ($request->getMethod() == 'POST') {
-            $input = $request->request->get('input');
-            $msg = 'こんにちは、' . $input . 'さん！';
-        } else {
-            $msg = 'お名前は？';
+            $form->handleRequest($request);
+            $data = $form->getData();
+            if ($data->getData() == '!') {
+                $session->remove('data');
+            } else {
+                $session->set('data', $data->getData());
+            }
         }
 
         return $this->render('hello/index.html.twig', [
             'title' => 'Hello',
-            'message' => $msg
+            'data' => $session->get('data'),
+            'form' => $form->createView()
         ]);
     }
+
+    // /**
+    //  * Symfony Fomの使用方法2
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request): Response
+    // {
+    //     $person = new Person();
+    //     $person->setName('taro')
+    //         ->setAge(36)
+    //         ->setMail('taro@yamada.kun');
+
+    //     $form = $this->createFormBuilder($person)
+    //         ->add('name',  TextType::class)
+    //         ->add('age',  IntegerType::class)
+    //         ->add('mail',  EmailType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $obj = $form->getData();
+    //         $msg = 'Name: ' . $obj->getName() . '<br>'
+    //             . 'Age: ' . $obj->getAge() . '<br>'
+    //             . 'Mail: ' . $obj->getMail();
+    //     } else {
+    //         $msg = 'お名前をどうぞ！';
+    //     }
+
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'message' => $msg,
+    //         'form' => $form->createView()
+    //     ]);
+    // }
+
+    // /**
+    //  * Symfony Fomの使用方法1
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request): Response
+    // {
+    //     $form = $this->createFormBuilder()
+    //         ->add('input',  TextType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $msg = 'こんにちは、' . $form->get('input')->getData() . 'さん！';
+    //     } else {
+    //         $msg = 'お名前どうぞ！';
+    //     }
+
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'message' => $msg,
+    //         'form' => $form->createView()
+    //     ]);
+    // }
+
+    // /**
+    //  * リクエスト取得方法3
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request): Response
+    // {
+    //     if ($request->getMethod() == 'POST') {
+    //         $input = $request->request->get('input');
+    //         $msg = 'こんにちは、' . $input . 'さん！';
+    //     } else {
+    //         $msg = 'お名前は？';
+    //     }
+
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'message' => $msg
+    //     ]);
+    // }
 
     // /**
     //  * リクエスト取得方法1
@@ -161,3 +261,58 @@ class HelloController extends AbstractController
     //     }
     // }
 }
+
+class MyData
+{
+    protected $data = '';
+
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    public function setData($data)
+    {
+        $this->data = $data;
+    }
+}
+
+// class Person
+// {
+//     protected $name;
+//     protected $age;
+//     protected $mail;
+
+//     public function getName()
+//     {
+//         return $this->name;
+//     }
+
+//     public function setName($name)
+//     {
+//         $this->name = $name;
+//         return $this;
+//     }
+
+//     public function getAge()
+//     {
+//         return $this->age;
+//     }
+
+//     public function setAge($age)
+//     {
+//         $this->age = $age;
+//         return $this;
+//     }
+
+//     public function getMail()
+//     {
+//         return $this->mail;
+//     }
+
+//     public function setMail($mail)
+//     {
+//         $this->mail = $mail;
+//         return $this;
+//     }
+// }

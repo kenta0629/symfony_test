@@ -2,43 +2,93 @@
 
 namespace App\Controller;
 
-use Psr\Log\LoggerInterface;
+use App\Entity\Person;
+// use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
+// use Symfony\Component\HttpFoundation\JsonResponse;
 // use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+// use Symfony\Component\Form\Extension\Core\Type\EmailType;
+// use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+// use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class HelloController extends AbstractController
 {
 
     /**
-     * Twigの使用方法
+     * ORMの使用方法1
      *
      * @Route("/hello", name="hello")
      */
     public function index(Request $request): Response
     {
-        $data = [
-            ['name' => 'Taro', 'age' => 37, 'mail' => 'taro@yamada'],
-            ['name' => 'Hanako', 'age' => 29, 'mail' => 'hanako@yamada'],
-            ['name' => 'Sashiko', 'age' => 43, 'mail' => 'sashiko@yamada'],
-            ['name' => 'Jiro', 'age' => 18, 'mail' => 'jiro@yamada'],
-        ];
+        $repository = $this->getDoctrine()
+            ->getRepository(Person::class);
+
+        $data = $repository->findall();
 
         return $this->render('hello/index.html.twig', [
             'title' => 'Hello',
             'data' => $data
-            // 'message' => 'これはサンプルテンプレート画面です。'
         ]);
     }
+
+    /**
+     * ORMの使用方法2
+     *
+     * @Route("/find/{id}", name="find")
+     */
+    public function find(Request $request, Person $person): Response
+    {
+        // $formobj = new FindForm();
+        // $form = $this->createFormBuilder($formobj)
+        //     ->add('find', TextType::class)
+        //     ->add('save', SubmitType::class, ['label' => 'Click'])
+        //     ->getForm();
+
+        // if ($request->getMethod() == 'POST') {
+        //     $form->handleRequest($request);
+        //     $finder = $form->getData()->getFind();
+        //     $repository = $this->getDoctrine()
+        //         ->getRepository(Person::class);
+        //     $result = $repository->find($finder);
+        // } else {
+        //     $result = null;
+        // }
+
+        return $this->render('hello/find.html.twig', [
+            'title' => 'Hello',
+            // 'form' => $form->createView(),
+            // 'data' => $result
+            'data' => $person
+        ]);
+    }
+
+    // /**
+    //  * Twigの使用方法
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request): Response
+    // {
+    //     $data = [
+    //         ['name' => 'Taro', 'age' => 37, 'mail' => 'taro@yamada'],
+    //         ['name' => 'Hanako', 'age' => 29, 'mail' => 'hanako@yamada'],
+    //         ['name' => 'Sashiko', 'age' => 43, 'mail' => 'sashiko@yamada'],
+    //         ['name' => 'Jiro', 'age' => 18, 'mail' => 'jiro@yamada'],
+    //     ];
+
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'data' => $data
+    //         // 'message' => 'これはサンプルテンプレート画面です。'
+    //     ]);
+    // }
 
     // /**
     //  * セッションの使用方法
@@ -283,20 +333,35 @@ class HelloController extends AbstractController
     // }
 }
 
-class MyData
+class FindForm
 {
-    protected $data = '';
+    private $find;
 
-    public function getData()
+    public function getFind()
     {
-        return $this->data;
+        return $this->find;
     }
 
-    public function setData($data)
+    public function setFind($find)
     {
-        $this->data = $data;
+        $this->find = $find;
     }
 }
+
+// class MyData
+// {
+//     protected $data = '';
+
+//     public function getData()
+//     {
+//         return $this->data;
+//     }
+
+//     public function setData($data)
+//     {
+//         $this->data = $data;
+//     }
+// }
 
 // class Person
 // {

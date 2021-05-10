@@ -4,47 +4,18 @@
 {% block title %}{{title}}{% endblock %}
 
 {% block body %}
-{# 値の受け渡し方法 #}
-{% include '/hello/table.html.twig' with [data] %}
-
-{# テンプレートの読み込み方法 #}
-{% include '/hello/form.html.twig' %}
-
-{# forの使い方 #}
 <table>
-<tr>
-    <th>Name</th>
-    <th>Age</th>
-    <th>Mail</th>
-</tr>
-{% for item in data %}
-<tr>
-    <td>{{item.name}}</td>
-    <td>{{item.age}}</td>
-    <td>{{item.mail}}</td>
-</tr>
-{% endfor %}
+    <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Mail</th>
+    </tr>
+    {% for item in data %}
+    <tr>
+        <td>{{item.name}}</td>
+        <td>{{item.age}}</td>
+        <td>{{item.mail}}</td>
+    </tr>
+    {% endfor %}
 </table>
-
-{# ifの使い方 #}
-{% set flg = true %}
-{% set message = 'This is sample message.' %}
-{% if flg %}
-    <p>{{message}}</p>
-{% else %}
-    <p>(※メッセージは非常時)</p>
-{% endif %}
-
-{# withの使い方 #}
-{% set price = 12300 %}
-{% with %}
-    {% set price = 1000 %}
-    <p>{{message}}</p>
-    <p>金額：{{price}}円</p>
-    {% set taxprice = price *1.1 %}
-    <p>税込：{{taxprice}}円</p>
-{% endwith %}
-<p>金額：{{price}}円</p>
-{% set taxprice = price *1.1 %}
-<p>税込：{{taxprice}}円</p>
 {% endblock %}

@@ -19,6 +19,26 @@ class PersonRepository extends ServiceEntityRepository
         parent::__construct($registry, Person::class);
     }
 
+    public function findByName($value)
+    {
+        $arr = explode(',', $value);
+        $builder = $this->createQueryBuilder('p');
+        return $builder
+            // ->where($builder->expr()->eq('p.name = ?1'))
+            // ->setParameter(1, $value)
+            ->where($builder->expr()->in('p.name', $arr))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAllwithSort()
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.age', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return Person[] Returns an array of Person objects
     //  */

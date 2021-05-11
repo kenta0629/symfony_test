@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Person;
 use App\Form\PersonType;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 // use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,151 +24,234 @@ class HelloController extends AbstractController
 {
 
     /**
-     * ORMの使用方法1
+     * ネイティブSQLの使用方法
      *
-     * @Route("/hello", name="hello")
+     * @Route("/find", name="find")
      */
-    public function index(Request $request): Response
+    public function find(Request $request): Response
     {
+        $formobj = new FindForm();
+        $form = $this->createFormBuilder($formobj)
+            ->add('find', TextType::class)
+            ->add('save', SubmitType::class, ['label' => 'Click'])
+            ->getForm();
+
         $repository = $this->getDoctrine()
             ->getRepository(Person::class);
 
-        $data = $repository->findall();
+        $manager = $this->getDoctrine()->getManager();
+        $mapping = new ResultSetMappingBuilder($manager);
+        $mapping->addRootEntityFromClassMetadata('App\Entity\Person', 'p');
 
-        return $this->render('hello/index.html.twig', [
-            'title' => 'Hello',
-            'data' => $data
-        ]);
-    }
+        if ($request->getMethod() == 'POST') {
+            $form->handleRequest($request);
+            $finder = $form->getData()->getFind();
+            $arr = explode(',', $finder);
 
-    /**
-     * ORMの使用方法2
-     *
-     * @Route("/find/{id}", name="find")
-     */
-    public function find(Request $request, Person $person): Response
-    {
-        // $formobj = new FindForm();
-        // $form = $this->createFormBuilder($formobj)
-        //     ->add('find', TextType::class)
-        //     ->add('save', SubmitType::class, ['label' => 'Click'])
-        //     ->getForm();
-
-        // if ($request->getMethod() == 'POST') {
-        //     $form->handleRequest($request);
-        //     $finder = $form->getData()->getFind();
-        //     $repository = $this->getDoctrine()
-        //         ->getRepository(Person::class);
-        //     $result = $repository->find($finder);
-        // } else {
-        //     $result = null;
-        // }
+            // FIXME:BETWEENでSyntaxエラーになる
+            $query = $manager->createNativeQuery(
+                'SELECT * FROM person WHERE age BETWEEN ?1 AND ?2',
+                $mapping
+            )
+            ->setParameters([1 => $arr[0], 2 => $arr[1]]);
+            $result = $query->getResult();
+        } else {
+            $query = $manager->createNativeQuery('SELECT * FROM person', $mapping);
+            $result = $query->getResult();
+        }
 
         return $this->render('hello/find.html.twig', [
             'title' => 'Hello',
-            // 'form' => $form->createView(),
-            // 'data' => $result
-            'data' => $person
+            'form' => $form->createView(),
+            'data' => $result
         ]);
     }
 
-    /**
-     * CRUDの使用方法(CREATE)
-     *
-     * @Route("/create", name="create")
-     */
-    public function create(Request $request): Response
-    {
-        $person = new Person();
-        $form = $this->createForm(PersonType::class, $person);
-        // $form = $this->createFormBuilder()
-        //     ->add('name', TextType::class)
-        //     ->add('mail', TextType::class)
-        //     ->add('age', IntegerType::class)
-        //     ->add('save', SubmitType::class, ['label' => 'Click'])
-        //     ->getForm();
+    // /**
+    //  * リポジトリのメソッド連携
+    //  * DQLの使用方法
+    //  *
+    //  * @Route("/find", name="find")
+    //  */
+    // public function find(Request $request): Response
+    // {
+    //     $formobj = new FindForm();
+    //     $form = $this->createFormBuilder($formobj)
+    //         ->add('find', TextType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
 
-        if ($request->getMethod() == 'POST') {
-            $form->handleRequest($request);
-            $person = $form->getData();
-            // $data = $form->getData();
-            // $person->setName($data['name']);
-            // $person->setMail($data['mail']);
-            // $person->setAge($data['age']);
+    //     $repository = $this->getDoctrine()
+    //         ->getRepository(Person::class);
 
-            $manager = $this->getDoctrine()->getManager();
-            $manager->persist($person);
-            $manager->flush();
-            return $this->redirect('/hello');
-        } else {
-            return $this->render('hello/create.html.twig', [
-                'title' => 'Hello',
-                'message' => 'Create Entity',
-                'form' => $form->createView()
-            ]);
-        }
-    }
+    //     $manager = $this->getDoctrine()->getManager();
 
-    /**
-     * CRUDの使用方法(UPDATE)
-     *
-     * @Route("/update/{id}", name="update")
-     */
-    public function update(Request $request, Person $person): Response
-    {
-        $form = $this->createFormBuilder($person)
-            ->add('name', TextType::class)
-            ->add('mail', TextType::class)
-            ->add('age', IntegerType::class)
-            ->add('save', SubmitType::class, ['label' => 'Click'])
-            ->getForm();
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $finder = $form->getData()->getFind();
 
-        if ($request->getMethod() == 'POST') {
-            $form->handleRequest($request);
-            $person = $form->getData();
+    //         $query = $manager->createQuery(
+    //             "SELECT p FROM App\Entity\Person p
+    //             WHERE p.name = '{$finder}'"
+    //         );
+    //         $result = $query->getResult();
+    //     } else {
+    //         $result = $repository->findAllwithSort();
+    //     }
 
-            $manager = $this->getDoctrine()->getManager();
-            $manager->flush();
-            return $this->redirect('/hello');
-        } else {
-            return $this->render('hello/create.html.twig', [
-                'title' => 'Hello',
-                'message' => 'Update Entity id = ' . $person->getId(),
-                'form' => $form->createView()
-            ]);
-        }
-    }
+    //     return $this->render('hello/find.html.twig', [
+    //         'title' => 'Hello',
+    //         'form' => $form->createView(),
+    //         'data' => $result
+    //     ]);
+    // }
 
-    /**
-     * CRUDの使用方法(DELETE)
-     *
-     * @Route("/delete/{id}", name="delete")
-     */
-    public function delete(Request $request, Person $person): Response
-    {
-        $form = $this->createFormBuilder($person)
-            ->add('name', TextType::class)
-            ->add('mail', TextType::class)
-            ->add('age', IntegerType::class)
-            ->add('save', SubmitType::class, ['label' => 'Click'])
-            ->getForm();
+    // /**
+    //  * ORMの使用方法1
+    //  *
+    //  * @Route("/hello", name="hello")
+    //  */
+    // public function index(Request $request): Response
+    // {
+    //     $repository = $this->getDoctrine()
+    //         ->getRepository(Person::class);
 
-        if ($request->getMethod() == 'POST') {
-            $form->handleRequest($request);
-            $person = $form->getData();
+    //     $data = $repository->findall();
 
-            $manager = $this->getDoctrine()->getManager();
-            $manager->remove($person);
-            $manager->flush();
-            return $this->redirect('/hello');
-        } else {
-            return $this->render('hello/create.html.twig', [
-                'title' => 'Hello',
-                'message' => 'Update Entity id = ' . $person->getId(),
-                'form' => $form->createView()
-            ]);
-        }
-    }
+    //     return $this->render('hello/index.html.twig', [
+    //         'title' => 'Hello',
+    //         'data' => $data
+    //     ]);
+    // }
+
+    // /**
+    //  * ORMの使用方法2
+    //  *
+    //  * @Route("/find/{id}", name="find")
+    //  */
+    // public function find(Request $request, Person $person): Response
+    // {
+    //     // $formobj = new FindForm();
+    //     // $form = $this->createFormBuilder($formobj)
+    //     //     ->add('find', TextType::class)
+    //     //     ->add('save', SubmitType::class, ['label' => 'Click'])
+    //     //     ->getForm();
+
+    //     // if ($request->getMethod() == 'POST') {
+    //     //     $form->handleRequest($request);
+    //     //     $finder = $form->getData()->getFind();
+    //     //     $repository = $this->getDoctrine()
+    //     //         ->getRepository(Person::class);
+    //     //     $result = $repository->find($finder);
+    //     // } else {
+    //     //     $result = null;
+    //     // }
+
+    //     return $this->render('hello/find.html.twig', [
+    //         'title' => 'Hello',
+    //         // 'form' => $form->createView(),
+    //         // 'data' => $result
+    //         'data' => $person
+    //     ]);
+    // }
+
+    // /**
+    //  * CRUDの使用方法(CREATE)
+    //  *
+    //  * @Route("/create", name="create")
+    //  */
+    // public function create(Request $request): Response
+    // {
+    //     $person = new Person();
+    //     $form = $this->createForm(PersonType::class, $person);
+    //     // $form = $this->createFormBuilder()
+    //     //     ->add('name', TextType::class)
+    //     //     ->add('mail', TextType::class)
+    //     //     ->add('age', IntegerType::class)
+    //     //     ->add('save', SubmitType::class, ['label' => 'Click'])
+    //     //     ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $person = $form->getData();
+    //         // $data = $form->getData();
+    //         // $person->setName($data['name']);
+    //         // $person->setMail($data['mail']);
+    //         // $person->setAge($data['age']);
+
+    //         $manager = $this->getDoctrine()->getManager();
+    //         $manager->persist($person);
+    //         $manager->flush();
+    //         return $this->redirect('/hello');
+    //     } else {
+    //         return $this->render('hello/create.html.twig', [
+    //             'title' => 'Hello',
+    //             'message' => 'Create Entity',
+    //             'form' => $form->createView()
+    //         ]);
+    //     }
+    // }
+
+    // /**
+    //  * CRUDの使用方法(UPDATE)
+    //  *
+    //  * @Route("/update/{id}", name="update")
+    //  */
+    // public function update(Request $request, Person $person): Response
+    // {
+    //     $form = $this->createFormBuilder($person)
+    //         ->add('name', TextType::class)
+    //         ->add('mail', TextType::class)
+    //         ->add('age', IntegerType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $person = $form->getData();
+
+    //         $manager = $this->getDoctrine()->getManager();
+    //         $manager->flush();
+    //         return $this->redirect('/hello');
+    //     } else {
+    //         return $this->render('hello/create.html.twig', [
+    //             'title' => 'Hello',
+    //             'message' => 'Update Entity id = ' . $person->getId(),
+    //             'form' => $form->createView()
+    //         ]);
+    //     }
+    // }
+
+    // /**
+    //  * CRUDの使用方法(DELETE)
+    //  *
+    //  * @Route("/delete/{id}", name="delete")
+    //  */
+    // public function delete(Request $request, Person $person): Response
+    // {
+    //     $form = $this->createFormBuilder($person)
+    //         ->add('name', TextType::class)
+    //         ->add('mail', TextType::class)
+    //         ->add('age', IntegerType::class)
+    //         ->add('save', SubmitType::class, ['label' => 'Click'])
+    //         ->getForm();
+
+    //     if ($request->getMethod() == 'POST') {
+    //         $form->handleRequest($request);
+    //         $person = $form->getData();
+
+    //         $manager = $this->getDoctrine()->getManager();
+    //         $manager->remove($person);
+    //         $manager->flush();
+    //         return $this->redirect('/hello');
+    //     } else {
+    //         return $this->render('hello/create.html.twig', [
+    //             'title' => 'Hello',
+    //             'message' => 'Update Entity id = ' . $person->getId(),
+    //             'form' => $form->createView()
+    //         ]);
+    //     }
+    // }
 
     // /**
     //  * Twigの使用方法

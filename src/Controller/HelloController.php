@@ -106,23 +106,23 @@ class HelloController extends AbstractController
     //     ]);
     // }
 
-    // /**
-    //  * ORMの使用方法1
-    //  *
-    //  * @Route("/hello", name="hello")
-    //  */
-    // public function index(Request $request): Response
-    // {
-    //     $repository = $this->getDoctrine()
-    //         ->getRepository(Person::class);
+    /**
+     * ORMの使用方法1
+     *
+     * @Route("/hello", name="hello")
+     */
+    public function index(Request $request): Response
+    {
+        $repository = $this->getDoctrine()
+            ->getRepository(Person::class);
 
-    //     $data = $repository->findall();
+        $data = $repository->findall();
 
-    //     return $this->render('hello/index.html.twig', [
-    //         'title' => 'Hello',
-    //         'data' => $data
-    //     ]);
-    // }
+        return $this->render('hello/index.html.twig', [
+            'title' => 'Hello',
+            'data' => $data
+        ]);
+    }
 
     // /**
     //  * ORMの使用方法2

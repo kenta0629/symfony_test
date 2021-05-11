@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Person;
+use App\Form\PersonType;
 // use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,9 +14,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 // use Symfony\Component\Form\Extension\Core\Type\EmailType;
-// use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 // use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class HelloController extends AbstractController
 {
@@ -67,6 +69,104 @@ class HelloController extends AbstractController
             // 'data' => $result
             'data' => $person
         ]);
+    }
+
+    /**
+     * CRUDの使用方法(CREATE)
+     *
+     * @Route("/create", name="create")
+     */
+    public function create(Request $request): Response
+    {
+        $person = new Person();
+        $form = $this->createForm(PersonType::class, $person);
+        // $form = $this->createFormBuilder()
+        //     ->add('name', TextType::class)
+        //     ->add('mail', TextType::class)
+        //     ->add('age', IntegerType::class)
+        //     ->add('save', SubmitType::class, ['label' => 'Click'])
+        //     ->getForm();
+
+        if ($request->getMethod() == 'POST') {
+            $form->handleRequest($request);
+            $person = $form->getData();
+            // $data = $form->getData();
+            // $person->setName($data['name']);
+            // $person->setMail($data['mail']);
+            // $person->setAge($data['age']);
+
+            $manager = $this->getDoctrine()->getManager();
+            $manager->persist($person);
+            $manager->flush();
+            return $this->redirect('/hello');
+        } else {
+            return $this->render('hello/create.html.twig', [
+                'title' => 'Hello',
+                'message' => 'Create Entity',
+                'form' => $form->createView()
+            ]);
+        }
+    }
+
+    /**
+     * CRUDの使用方法(UPDATE)
+     *
+     * @Route("/update/{id}", name="update")
+     */
+    public function update(Request $request, Person $person): Response
+    {
+        $form = $this->createFormBuilder($person)
+            ->add('name', TextType::class)
+            ->add('mail', TextType::class)
+            ->add('age', IntegerType::class)
+            ->add('save', SubmitType::class, ['label' => 'Click'])
+            ->getForm();
+
+        if ($request->getMethod() == 'POST') {
+            $form->handleRequest($request);
+            $person = $form->getData();
+
+            $manager = $this->getDoctrine()->getManager();
+            $manager->flush();
+            return $this->redirect('/hello');
+        } else {
+            return $this->render('hello/create.html.twig', [
+                'title' => 'Hello',
+                'message' => 'Update Entity id = ' . $person->getId(),
+                'form' => $form->createView()
+            ]);
+        }
+    }
+
+    /**
+     * CRUDの使用方法(DELETE)
+     *
+     * @Route("/delete/{id}", name="delete")
+     */
+    public function delete(Request $request, Person $person): Response
+    {
+        $form = $this->createFormBuilder($person)
+            ->add('name', TextType::class)
+            ->add('mail', TextType::class)
+            ->add('age', IntegerType::class)
+            ->add('save', SubmitType::class, ['label' => 'Click'])
+            ->getForm();
+
+        if ($request->getMethod() == 'POST') {
+            $form->handleRequest($request);
+            $person = $form->getData();
+
+            $manager = $this->getDoctrine()->getManager();
+            $manager->remove($person);
+            $manager->flush();
+            return $this->redirect('/hello');
+        } else {
+            return $this->render('hello/create.html.twig', [
+                'title' => 'Hello',
+                'message' => 'Update Entity id = ' . $person->getId(),
+                'form' => $form->createView()
+            ]);
+        }
     }
 
     // /**
